@@ -1,0 +1,800 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Student Management System</title>
+  <style>
+    :root {
+      --bg: #0f172a; --surface: #1e293b; --surface2: #293548;
+      --border: #334155; --text: #e2e8f0; --muted: #94a3b8;
+      --blue: #3b82f6; --blue-h: #2563eb;
+      --green: #22c55e; --red: #ef4444; --amber: #f59e0b; --purple: #a855f7;
+      --radius: 10px;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+    .hidden { display: none !important; }
+    .app { display: flex; flex-direction: column; min-height: 100vh; }
+    nav { background: var(--surface); border-bottom: 1px solid var(--border); padding: 0 24px; display: flex; align-items: center; gap: 12px; height: 56px; }
+    nav .logo { font-size: 15px; font-weight: 600; color: var(--text); margin-right: auto; }
+    nav .logo span { color: var(--blue); }
+    .nav-btn { background: none; border: 1px solid var(--border); color: var(--muted); padding: 6px 14px; border-radius: 6px; cursor: pointer; font-size: 13px; transition: all .15s; }
+    .nav-btn:hover { border-color: var(--blue); color: var(--blue); }
+    #user-info { font-size: 12px; color: var(--muted); background: var(--surface2); padding: 4px 10px; border-radius: 20px; }
+    .main { flex: 1; padding: 28px 24px; max-width: 1140px; margin: 0 auto; width: 100%; }
+    .auth-wrap { display: flex; justify-content: center; padding-top: 60px; }
+    .auth-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 36px; width: 380px; }
+    .auth-card h2 { font-size: 20px; font-weight: 600; margin-bottom: 24px; }
+    .tabs { display: flex; margin-bottom: 24px; border: 1px solid var(--border); border-radius: 7px; overflow: hidden; }
+    .tab { flex: 1; padding: 8px; text-align: center; cursor: pointer; font-size: 13px; color: var(--muted); background: var(--surface2); border: none; transition: all .15s; }
+    .tab.active { background: var(--blue); color: #fff; }
+    .tab-switch { background: var(--surface2); border: 1px solid var(--border); color: var(--muted); padding: 7px 18px; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 500; transition: all .15s; }
+    .tab-switch.active { background: var(--blue); border-color: var(--blue); color: #fff; }
+    .form-group { margin-bottom: 16px; }
+    label { display: block; font-size: 12px; color: var(--muted); margin-bottom: 6px; font-weight: 500; }
+    input, select { width: 100%; background: var(--bg); border: 1px solid var(--border); border-radius: 7px; padding: 9px 12px; color: var(--text); font-size: 14px; outline: none; transition: border-color .15s; }
+    input:focus, select:focus { border-color: var(--blue); }
+    select option { background: var(--surface); }
+    .btn { width: 100%; padding: 10px; background: var(--blue); color: #fff; border: none; border-radius: 7px; font-size: 14px; font-weight: 500; cursor: pointer; transition: background .15s; }
+    .btn:hover { background: var(--blue-h); }
+    .btn-sm { width: auto; padding: 5px 12px; font-size: 12px; border-radius: 5px; }
+    .btn-danger { background: var(--red); } .btn-danger:hover { background: #dc2626; }
+    .btn-success { background: var(--green); } .btn-success:hover { background: #16a34a; }
+    .btn-outline { background: none; border: 1px solid var(--border); color: var(--text); } .btn-outline:hover { border-color: var(--blue); color: var(--blue); }
+    .btn-amber { background: var(--amber); color: #000; } .btn-amber:hover { background: #d97706; }
+    .btn-purple { background: var(--purple); } .btn-purple:hover { background: #9333ea; }
+    #toast { position: fixed; top: 20px; right: 20px; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 12px 18px; font-size: 13px; transform: translateX(120%); transition: transform .25s; z-index: 999; max-width: 320px; }
+    #toast.show { transform: translateX(0); }
+    #toast.success { border-color: var(--green); color: var(--green); }
+    #toast.error { border-color: var(--red); color: var(--red); }
+    .panel-header { display: flex; align-items: center; gap: 12px; margin-bottom: 20px; flex-wrap: wrap; }
+    .panel-header h2 { font-size: 18px; font-weight: 600; margin-right: auto; }
+    .filters { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 20px; }
+    .filters input, .filters select { width: auto; min-width: 140px; flex: 1; }
+    .filters .btn { width: auto; padding: 9px 18px; }
+    .table-wrap { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
+    table { width: 100%; border-collapse: collapse; }
+    th { background: var(--surface2); padding: 11px 14px; text-align: left; font-size: 12px; color: var(--muted); font-weight: 500; text-transform: uppercase; letter-spacing: .4px; border-bottom: 1px solid var(--border); }
+    td { padding: 12px 14px; font-size: 13px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: var(--surface2); }
+    .gpa-badge { display: inline-block; padding: 2px 8px; border-radius: 20px; font-size: 11px; font-weight: 600; }
+    .gpa-high { background: rgba(34,197,94,.15); color: var(--green); }
+    .gpa-mid  { background: rgba(245,158,11,.15); color: var(--amber); }
+    .gpa-low  { background: rgba(239,68,68,.15);  color: var(--red); }
+    .td-actions { display: flex; gap: 6px; flex-wrap: wrap; }
+    .empty { text-align: center; color: var(--muted); padding: 48px; font-size: 14px; }
+    .pagination { display: flex; align-items: center; gap: 8px; margin-top: 16px; justify-content: center; font-size: 13px; color: var(--muted); }
+    .pagination button { background: var(--surface); border: 1px solid var(--border); color: var(--text); padding: 5px 14px; border-radius: 5px; cursor: pointer; font-size: 13px; }
+    .pagination button:disabled { opacity: .4; cursor: not-allowed; }
+    .modal-bg { position: fixed; inset: 0; background: rgba(0,0,0,.6); display: flex; align-items: center; justify-content: center; z-index: 300; padding: 20px; }
+    .modal { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); width: 100%; max-width: 460px; padding: 28px; max-height: 90vh; overflow-y: auto; }
+    .modal h3 { font-size: 16px; font-weight: 600; margin-bottom: 20px; }
+    .modal-footer { display: flex; gap: 8px; margin-top: 20px; justify-content: flex-end; }
+    .modal-footer .btn { width: auto; padding: 8px 20px; }
+    .dash-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 28px; }
+    @media(max-width:640px) { .dash-grid { grid-template-columns: 1fr; } }
+    .info-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 22px; }
+    .info-card h3 { font-size: 12px; color: var(--muted); margin-bottom: 14px; text-transform: uppercase; letter-spacing: .5px; }
+    .info-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid var(--border); font-size: 13px; }
+    .info-row:last-child { border-bottom: none; }
+    .info-row .key { color: var(--muted); }
+    .info-row .val { font-weight: 500; }
+    .section-title { font-size: 16px; font-weight: 600; margin-bottom: 16px; }
+    .courses-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 16px; }
+    .course-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 18px; transition: border-color .15s; }
+    .course-card:hover { border-color: var(--blue); }
+    .course-card .code { font-size: 11px; font-weight: 700; color: var(--blue); letter-spacing: .5px; margin-bottom: 6px; }
+    .course-card .cname { font-size: 14px; font-weight: 600; margin-bottom: 10px; }
+    .course-card .tags { display: flex; flex-wrap: wrap; gap: 6px; }
+    .tag { display: inline-block; padding: 3px 9px; border-radius: 20px; font-size: 11px; font-weight: 500; }
+    .tag-sem    { background: rgba(59,130,246,.15); color: var(--blue); }
+    .tag-credit { background: rgba(168,85,247,.15); color: var(--purple); }
+    .tag-grade  { background: rgba(34,197,94,.15);  color: var(--green); }
+    .tag-none   { background: rgba(148,163,184,.15); color: var(--muted); }
+    .drawer-bg { position: fixed; inset: 0; background: rgba(0,0,0,.5); z-index: 200; }
+    .drawer { position: fixed; top: 0; right: 0; height: 100%; width: min(560px,100%); background: var(--surface); border-left: 1px solid var(--border); z-index: 201; overflow-y: auto; padding: 28px; }
+    .drawer-hdr { display: flex; align-items: center; justify-content: space-between; margin-bottom: 22px; }
+    .drawer-hdr h2 { font-size: 16px; font-weight: 600; }
+    .x-btn { background: none; border: none; color: var(--muted); font-size: 22px; cursor: pointer; }
+    .x-btn:hover { color: var(--text); }
+    .req-method { display: inline-block; padding: 2px 7px; border-radius: 4px; font-size: 11px; font-weight: 700; }
+    .req-GET    { background: rgba(59,130,246,.15); color: var(--blue); }
+    .req-POST   { background: rgba(34,197,94,.15);  color: var(--green); }
+    .req-PUT    { background: rgba(245,158,11,.15); color: var(--amber); }
+    .req-DELETE { background: rgba(239,68,68,.15);  color: var(--red); }
+    .status-ok  { color: var(--green); font-weight: 600; }
+    .status-err { color: var(--red);   font-weight: 600; }
+    .stat-mini  { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px 20px; }
+    .stat-mini .lbl { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: .4px; margin-bottom: 6px; }
+    .stat-mini .val { font-size: 26px; font-weight: 700; }
+  </style>
+</head>
+<body>
+<div class="app">
+  <nav>
+    <div class="logo">Student<span>MS</span></div>
+    <span id="user-info" class="hidden"></span>
+    <button class="nav-btn hidden" id="nav-monitoring" onclick="showMonitoring()">Monitoring</button>
+    <button class="nav-btn hidden" id="nav-edit-profile" onclick="openProfileEditModal()">✏️ Edit Profile</button>
+    <button class="nav-btn hidden" id="nav-logout" onclick="logout()">Logout</button>
+  </nav>
+  <div class="main">
+
+    <!-- Auth -->
+    <div id="view-auth" class="auth-wrap">
+      <div class="auth-card">
+        <h2>Student Management System</h2>
+        <div class="tabs">
+          <button class="tab active" onclick="switchTab('login')">Login</button>
+          <button class="tab" onclick="switchTab('register')">Register</button>
+        </div>
+        <div id="login-form">
+          <div class="form-group"><label>Email</label><input id="l-email" type="email" placeholder="you@example.com"></div>
+          <div class="form-group"><label>Password</label><input id="l-pass" type="password" placeholder="••••••••"></div>
+          <button class="btn" onclick="doLogin()">Login</button>
+        </div>
+        <div id="register-form" class="hidden">
+          <div class="form-group"><label>Email</label><input id="r-email" type="email" placeholder="you@example.com"></div>
+          <div class="form-group"><label>Password</label><input id="r-pass" type="password" placeholder="min 6 chars"></div>
+          <div class="form-group"><label>Role</label>
+            <select id="r-role"><option value="student">Student</option></select>
+          </div>
+          <button class="btn" onclick="doRegister()">Create Account</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Admin: Students + Requests -->
+    <div id="view-students" class="hidden">
+      <div class="panel-header">
+        <h2>Students</h2>
+        <button class="btn btn-sm btn-success" id="btn-add-student" onclick="openCreateModal()">+ Add Student</button>
+      </div>
+      <div style="display:flex;gap:8px;margin-bottom:20px;">
+        <button class="tab-switch active" id="tab-students-btn" onclick="switchAdminTab('students')">👥 Students</button>
+        <button class="tab-switch" id="tab-requests-btn" onclick="switchAdminTab('requests')">📋 Requests Log</button>
+      </div>
+
+      <!-- Students Panel -->
+      <div id="admin-students-panel">
+        <div class="filters">
+          <input id="f-dept" placeholder="Filter by department..." onkeydown="if(event.key==='Enter')loadStudents()">
+          <input id="f-gpa" type="number" step="0.1" min="0" max="4" placeholder="Min GPA...">
+          <button class="btn btn-sm" onclick="loadStudents()">Filter</button>
+          <button class="btn btn-sm btn-outline" onclick="clearFilters()">Clear</button>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Name</th><th>Email</th><th>Department</th><th>GPA</th><th>Phone</th><th>Actions</th></tr></thead>
+            <tbody id="students-tbody"></tbody>
+          </table>
+        </div>
+        <div class="pagination">
+          <button id="prev-btn" onclick="changePage(-1)" disabled>← Prev</button>
+          <span id="page-info">Page 1</span>
+          <button id="next-btn" onclick="changePage(1)">Next →</button>
+        </div>
+      </div>
+
+      <!-- Requests Log Panel -->
+      <div id="admin-requests-panel" class="hidden">
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:20px;" id="req-stats"></div>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+          <span style="font-size:13px;color:var(--muted);">Showing last 50 requests</span>
+          <button class="btn btn-sm btn-outline" onclick="loadRequestsLog()">↻ Refresh</button>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Time</th><th>Method</th><th>Endpoint</th><th>Status</th><th>Duration</th></tr></thead>
+            <tbody id="requests-tbody"><tr><td colspan="5" class="empty">Loading…</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Student Dashboard -->
+    <div id="view-dashboard" class="hidden">
+      <div class="panel-header"><h2>My Dashboard</h2></div>
+      <div class="dash-grid">
+        <div class="info-card"><h3>My Profile</h3><div id="profile-rows"></div></div>
+        <div class="info-card"><h3>Stats</h3><div id="stats-rows"></div></div>
+      </div>
+      <div class="section-title">📚 My Courses</div>
+      <div id="courses-grid" class="courses-grid"><div class="empty">Loading...</div></div>
+    </div>
+
+    <!-- Monitoring -->
+    <div id="view-monitoring" class="hidden">
+      <div class="panel-header"><h2>Monitoring Dashboard</h2></div>
+      <div id="monitoring-content"></div>
+    </div>
+
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<!-- Admin: Student Create/Edit Modal -->
+<div id="modal" class="modal-bg hidden">
+  <div class="modal">
+    <h3 id="modal-title">Add Student</h3>
+    <div class="form-group"><label>Full Name</label><input id="m-name" placeholder="Ahmed Mohamed"></div>
+    <div class="form-group"><label>Email</label><input id="m-email" type="email" placeholder="ahmed@example.com"></div>
+    <div class="form-group"><label id="m-pass-lbl">Password</label><input id="m-pass" type="password" placeholder="min 6 chars"></div>
+    <div class="form-group"><label>Department</label><input id="m-dept" placeholder="Computer Science"></div>
+    <div class="form-group"><label>GPA (0.0 – 4.0)</label><input id="m-gpa" type="number" step="0.01" min="0" max="4" placeholder="3.5"></div>
+    <div class="form-group"><label>Phone (starts with 01, 11 digits)</label><input id="m-phone" placeholder="01XXXXXXXXX"></div>
+    <div class="modal-footer">
+      <button class="btn btn-sm btn-outline" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-sm" id="modal-submit" onclick="submitModal()">Create</button>
+    </div>
+  </div>
+</div>
+
+<!-- Student: Edit My Profile Modal (email, phone, password only) -->
+<div id="profile-edit-modal" class="modal-bg hidden">
+  <div class="modal">
+    <h3>Edit My Profile</h3>
+    <p style="font-size:12px;color:var(--muted);margin-bottom:20px;margin-top:-10px;">Update your email, phone number, or password.</p>
+    <div class="form-group"><label>Email</label><input id="pe-email" type="email" placeholder="your@email.com"></div>
+    <div class="form-group"><label>Phone (starts with 01, 11 digits)</label><input id="pe-phone" placeholder="01XXXXXXXXX"></div>
+    <div class="form-group">
+      <label>New Password <span style="color:var(--muted);font-weight:400;">(leave blank to keep current)</span></label>
+      <input id="pe-pass" type="password" placeholder="min 6 chars">
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-sm btn-outline" onclick="closeProfileEditModal()">Cancel</button>
+      <button class="btn btn-sm" onclick="submitProfileEdit()">Save Changes</button>
+    </div>
+  </div>
+</div>
+
+<!-- Courses Drawer -->
+<div id="drawer-bg" class="drawer-bg hidden" onclick="closeDrawer()"></div>
+<div id="drawer" class="drawer hidden">
+  <div class="drawer-hdr">
+    <h2 id="drawer-title">Courses</h2>
+    <button class="x-btn" onclick="closeDrawer()">✕</button>
+  </div>
+  <div style="margin-bottom:16px">
+    <button class="btn btn-sm btn-success" onclick="openCourseModal(null)">+ Add Course</button>
+  </div>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Code</th><th>Course Name</th><th>Semester</th><th>Credits</th><th>Grade</th><th></th></tr></thead>
+      <tbody id="courses-tbody"></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Course Add/Edit Modal -->
+<div id="course-modal" class="modal-bg hidden" data-student-id="">
+  <div class="modal">
+    <h3 id="cm-title">Add Course</h3>
+    <div class="form-group"><label>Course Name</label><input id="cm-name" placeholder="Introduction to Programming"></div>
+    <div class="form-group"><label>Course Code</label><input id="cm-code" placeholder="CS101"></div>
+    <div class="form-group"><label>Credit Hours (1–6)</label><input id="cm-credits" type="number" min="1" max="6" value="3"></div>
+    <div class="form-group"><label>Semester</label><input id="cm-semester" placeholder="Fall 2024"></div>
+    <div class="form-group"><label>Grade (0–100, optional)</label><input id="cm-grade" type="number" min="0" max="100" placeholder="Leave blank if not graded yet"></div>
+    <div class="modal-footer">
+      <button class="btn btn-sm btn-outline" onclick="closeCourseModal()">Cancel</button>
+      <button class="btn btn-sm" id="cm-submit" onclick="submitCourseModal()">Add Course</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const API = 'http://127.0.0.1:8000';
+let token = '', userRole = '', userEmail = '';
+let currentPage = 1, totalStudents = 0, pageSize = 10;
+let editingStudentId = null, drawerStudentId = null, editingCourseId = null;
+
+function toast(msg, type = 'success') {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.className = 'show ' + type;
+  setTimeout(() => t.className = '', 3200);
+}
+
+async function api(method, path, body) {
+  const opts = { method, headers: { 'Content-Type': 'application/json' } };
+  if (token) opts.headers['Authorization'] = 'Bearer ' + token;
+  if (body !== undefined) opts.body = JSON.stringify(body);
+  const res = await fetch(API + path, opts);
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    let msg = res.statusText;
+    if (data.detail) {
+      // FastAPI validation errors return detail as an array of objects
+      if (Array.isArray(data.detail)) {
+        msg = data.detail.map(e => {
+          const field = e.loc ? e.loc.filter(l => l !== 'body').join('.') : '';
+          return field ? `${field}: ${e.msg}` : e.msg;
+        }).join(' | ');
+      } else if (typeof data.detail === 'object') {
+        msg = JSON.stringify(data.detail);
+      } else {
+        msg = String(data.detail);
+      }
+    }
+    throw new Error(msg);
+  }
+  return data;
+}
+
+function showView(name) {
+  ['view-auth','view-students','view-dashboard','view-monitoring'].forEach(id =>
+    document.getElementById(id).classList.add('hidden'));
+  document.getElementById(name).classList.remove('hidden');
+}
+
+// ── Auth ──────────────────────────────────────────────────────
+function switchTab(tab) {
+  document.getElementById('login-form').classList.toggle('hidden', tab !== 'login');
+  document.getElementById('register-form').classList.toggle('hidden', tab !== 'register');
+  document.querySelectorAll('.tab').forEach((b, i) =>
+    b.classList.toggle('active', tab === 'login' ? i === 0 : i === 1));
+}
+
+async function doLogin() {
+  const email = document.getElementById('l-email').value.trim();
+  const password = document.getElementById('l-pass').value;
+  if (!email || !password) return toast('Fill in all fields', 'error');
+  try {
+    const data = await api('POST', '/auth/login', { email, password });
+    token = data.access_token;
+    const pl = JSON.parse(atob(token.split('.')[1]));
+    userRole = pl.role; userEmail = pl.sub;
+    document.getElementById('user-info').textContent = userEmail + ' · ' + userRole;
+    document.getElementById('user-info').classList.remove('hidden');
+    document.getElementById('nav-logout').classList.remove('hidden');
+    if (userRole === 'admin') {
+      document.getElementById('nav-monitoring').classList.remove('hidden');
+      showView('view-students'); loadStudents();
+    } else {
+      // Show Edit Profile button for students only
+      document.getElementById('nav-edit-profile').classList.remove('hidden');
+      showView('view-dashboard'); loadDashboard();
+    }
+  } catch (e) { toast(e.message, 'error'); }
+}
+
+async function doRegister() {
+  const email = document.getElementById('r-email').value.trim();
+  const password = document.getElementById('r-pass').value;
+  const role = document.getElementById('r-role').value;
+  if (!email || !password) return toast('Fill in all fields', 'error');
+  try {
+    await api('POST', '/auth/register', { email, password, role });
+    toast('Registered! Please login.'); switchTab('login');
+    document.getElementById('l-email').value = email;
+  } catch (e) { toast(e.message, 'error'); }
+}
+
+function logout() {
+  token = ''; userRole = ''; userEmail = '';
+  ['user-info','nav-logout','nav-monitoring','nav-edit-profile'].forEach(id =>
+    document.getElementById(id).classList.add('hidden'));
+  showView('view-auth');
+}
+
+// ── Admin Tab Switcher ────────────────────────────────────────
+function switchAdminTab(tab) {
+  const isStudents = tab === 'students';
+  document.getElementById('admin-students-panel').classList.toggle('hidden', !isStudents);
+  document.getElementById('admin-requests-panel').classList.toggle('hidden', isStudents);
+  document.getElementById('btn-add-student').classList.toggle('hidden', !isStudents);
+  document.getElementById('tab-students-btn').classList.toggle('active', isStudents);
+  document.getElementById('tab-requests-btn').classList.toggle('active', !isStudents);
+  if (!isStudents) loadRequestsLog();
+}
+
+// ── Admin: Requests Log ───────────────────────────────────────
+async function loadRequestsLog() {
+  try {
+    const data = await api('GET', '/monitoring/stats');
+    const logs = (data.recent_logs || []).slice().reverse();
+
+    // Summary cards
+    document.getElementById('req-stats').innerHTML = [
+      ['Total Requests', data.total_requests, 'var(--blue)'],
+      ['Errors', data.errors, 'var(--red)'],
+      ['Avg Response', (data.avg_response_time_ms ? data.avg_response_time_ms.toFixed(1) : '0') + ' ms', 'var(--amber)'],
+      ['Status', 'Online ✓', 'var(--green)'],
+    ].map(([lbl, val, color]) => `
+      <div class="stat-mini">
+        <div class="lbl">${lbl}</div>
+        <div class="val" style="color:${color}">${val}</div>
+      </div>`).join('');
+
+    // Parse log lines: "2026-04-21 17:18:34 | INFO | GET /students/ -> 200 (8154.51ms)"
+    const rows = logs.map(line => {
+      const m = line.match(/(\d{2}:\d{2}:\d{2}).*?\|\s*(GET|POST|PUT|DELETE|PATCH)\s+(\S+)\s*->\s*(\d{3})\s*\(([^)]+)\)/);
+      if (!m) return `<tr><td colspan="5" style="font-size:12px;color:var(--muted);padding:8px 14px;">${line}</td></tr>`;
+      const [, time, method, endpoint, status, duration] = m;
+      const statusClass = parseInt(status) < 400 ? 'status-ok' : 'status-err';
+      return `<tr>
+        <td style="font-size:12px;color:var(--muted);white-space:nowrap;">${time}</td>
+        <td><span class="req-method req-${method}">${method}</span></td>
+        <td style="font-size:12px;font-family:monospace;">${endpoint}</td>
+        <td class="${statusClass}">${status}</td>
+        <td style="font-size:12px;color:var(--muted);">${duration}</td>
+      </tr>`;
+    }).join('');
+
+    document.getElementById('requests-tbody').innerHTML =
+      rows || '<tr><td colspan="5" class="empty">No requests yet</td></tr>';
+  } catch (e) { toast(e.message, 'error'); }
+}
+
+// ── Admin: Students list ──────────────────────────────────────
+function gpaBadge(g) {
+  const c = g >= 3.5 ? 'gpa-high' : g >= 2.5 ? 'gpa-mid' : 'gpa-low';
+  return `<span class="gpa-badge ${c}">${g.toFixed(2)}</span>`;
+}
+
+async function loadStudents() {
+  const dept = document.getElementById('f-dept').value.trim();
+  const gpa  = document.getElementById('f-gpa').value;
+  let url = `/students/?page=${currentPage}&size=${pageSize}`;
+  if (dept) url += `&department=${encodeURIComponent(dept)}`;
+  if (gpa)  url += `&min_gpa=${gpa}`;
+  try {
+    const data = await api('GET', url);
+    totalStudents = data.total;
+    document.getElementById('page-info').textContent = `Page ${currentPage} · ${totalStudents} total`;
+    document.getElementById('prev-btn').disabled = currentPage <= 1;
+    document.getElementById('next-btn').disabled = currentPage * pageSize >= totalStudents;
+    const tbody = document.getElementById('students-tbody');
+    if (!data.students.length) {
+      tbody.innerHTML = '<tr><td colspan="6" class="empty">No students found</td></tr>'; return;
+    }
+    tbody.innerHTML = data.students.map(s => {
+      const isPending = s.full_name === '(Pending)' || s.department === '(Pending)';
+      const pendingBadge = isPending
+        ? ' <span style="background:var(--amber,#f59e0b);color:#000;font-size:0.7rem;padding:1px 6px;border-radius:9px;font-weight:700;vertical-align:middle">Pending</span>'
+        : '';
+      const rowStyle = isPending ? ' style="background:rgba(245,158,11,0.07)"' : '';
+      return `<tr${rowStyle}>
+        <td>${s.full_name}${pendingBadge}</td><td>${s.email}</td><td>${s.department}</td>
+        <td>${gpaBadge(s.gpa)}</td>
+        <td>${s.phone || '<span style="color:var(--muted)">—</span>'}</td>
+        <td class="td-actions">
+          <button class="btn btn-sm btn-purple" onclick="openDrawer(${s.id},'${s.full_name.replace(/'/g,"\\'")}')">Courses</button>
+          <button class="btn btn-sm btn-amber" onclick="openEditModal(${s.id})">Edit${isPending ? ' ✏️' : ''}</button>
+          <button class="btn btn-sm btn-danger" onclick="deleteStudent(${s.id})">Delete</button>
+        </td></tr>`;
+    }).join('');
+  } catch (e) { toast(e.message, 'error'); }
+}
+
+function clearFilters() {
+  document.getElementById('f-dept').value = '';
+  document.getElementById('f-gpa').value = '';
+  currentPage = 1; loadStudents();
+}
+function changePage(d) { currentPage = Math.max(1, currentPage + d); loadStudents(); }
+
+// ── Admin: Student Create/Edit Modal ─────────────────────────
+function openCreateModal() {
+  editingStudentId = null;
+  document.getElementById('modal-title').textContent = 'Add Student';
+  document.getElementById('modal-submit').textContent = 'Create';
+  document.getElementById('m-pass-lbl').textContent = 'Password';
+  ['m-name','m-email','m-pass','m-dept','m-gpa','m-phone'].forEach(id =>
+    document.getElementById(id).value = '');
+  document.getElementById('modal').classList.remove('hidden');
+}
+
+async function openEditModal(id) {
+  editingStudentId = id;
+  try {
+    const s = await api('GET', `/students/${id}`);
+    document.getElementById('modal-title').textContent = 'Edit Student';
+    document.getElementById('modal-submit').textContent = 'Save Changes';
+    document.getElementById('m-pass-lbl').textContent = 'New Password (leave blank to keep)';
+    // Clear placeholder "(Pending)" values so the admin fills in real data
+    document.getElementById('m-name').value  = s.full_name  === '(Pending)' ? '' : s.full_name;
+    document.getElementById('m-email').value = s.email;
+    document.getElementById('m-pass').value  = '';
+    document.getElementById('m-dept').value  = s.department === '(Pending)' ? '' : s.department;
+    document.getElementById('m-gpa').value   = s.gpa;
+    document.getElementById('m-phone').value = s.phone || '';
+    document.getElementById('modal').classList.remove('hidden');
+  } catch (e) { toast(e.message, 'error'); }
+}
+
+function closeModal() { document.getElementById('modal').classList.add('hidden'); }
+
+async function submitModal() {
+  const name  = document.getElementById('m-name').value.trim();
+  const email = document.getElementById('m-email').value.trim();
+  const pass  = document.getElementById('m-pass').value;
+  const dept  = document.getElementById('m-dept').value.trim();
+  const gpa   = parseFloat(document.getElementById('m-gpa').value);
+  const phone = document.getElementById('m-phone').value.trim() || null;
+  if (phone && !/^01\d{9}$/.test(phone)) return toast('Phone must start with 01 and be 11 digits', 'error');
+  // Guard: block accidental save of placeholder text
+  if (name === '(Pending)' || dept === '(Pending)') return toast('Please replace the placeholder values with real information before saving.', 'error');
+  try {
+    if (editingStudentId) {
+      const body = {};
+      if (name)  body.full_name  = name;
+      if (email) body.email      = email;
+      if (pass)  body.password   = pass;
+      if (dept)  body.department = dept;
+      if (!isNaN(gpa)) body.gpa  = gpa;
+      body.phone = phone;
+      await api('PUT', `/students/${editingStudentId}`, body);
+      toast('Student updated');
+    } else {
+      if (!name || !email || !pass || !dept) return toast('Fill all required fields', 'error');
+      const body = { full_name: name, email, password: pass, department: dept, gpa: isNaN(gpa) ? 0 : gpa };
+      if (phone) body.phone = phone;
+      await api('POST', '/students/', body);
+      toast('Student created'); currentPage = 1;
+    }
+    closeModal(); loadStudents();
+  } catch (e) { toast(e.message, 'error'); }
+}
+
+async function deleteStudent(id) {
+  if (!confirm('Delete this student and their login account?')) return;
+  try { await api('DELETE', `/students/${id}`); toast('Student deleted'); loadStudents(); }
+  catch (e) { toast(e.message, 'error'); }
+}
+
+// ── Student: Edit Profile Modal ───────────────────────────────
+async function openProfileEditModal() {
+  try {
+    const p = await api('GET', '/students/me');
+    document.getElementById('pe-email').value = p.email || '';
+    document.getElementById('pe-phone').value = p.phone || '';
+    document.getElementById('pe-pass').value  = '';
+    document.getElementById('profile-edit-modal').classList.remove('hidden');
+  } catch (e) { toast(e.message, 'error'); }
+}
+
+function closeProfileEditModal() {
+  document.getElementById('profile-edit-modal').classList.add('hidden');
+}
+
+async function submitProfileEdit() {
+  const email = document.getElementById('pe-email').value.trim();
+  const phone = document.getElementById('pe-phone').value.trim() || null;
+  const pass  = document.getElementById('pe-pass').value;
+  if (phone && !/^01\d{9}$/.test(phone)) return toast('Phone must start with 01 and be 11 digits', 'error');
+  if (pass && pass.length < 6) return toast('Password must be at least 6 characters', 'error');
+  const body = {};
+  if (email) body.email = email;
+  if (phone !== null) body.phone = phone;
+  if (pass)  body.password = pass;
+  if (!Object.keys(body).length) return toast('No changes to save', 'error');
+  try {
+    await api('PUT', '/students/me', body);
+    toast('Profile updated successfully');
+    closeProfileEditModal();
+    loadDashboard();
+  } catch (e) { toast(e.message, 'error'); }
+}
+
+// ── Courses Drawer ────────────────────────────────────────────
+async function openDrawer(sid, name) {
+  drawerStudentId = sid;
+  document.getElementById('drawer-title').textContent = `Courses — ${name}`;
+  document.getElementById('drawer-bg').classList.remove('hidden');
+  document.getElementById('drawer').classList.remove('hidden');
+  await loadDrawerCourses();
+}
+function closeDrawer() {
+  // Don't wipe drawerStudentId while the course modal is open
+  const courseModal = document.getElementById('course-modal');
+  if (!courseModal.classList.contains('hidden')) return;
+  document.getElementById('drawer-bg').classList.add('hidden');
+  document.getElementById('drawer').classList.add('hidden');
+  drawerStudentId = null;
+}
+
+function _syncDrawerBgPointer() {
+  const drawerBg = document.getElementById('drawer-bg');
+  const courseModal = document.getElementById('course-modal');
+  // Disable pointer events on drawer-bg when course modal is open so clicks reach the modal
+  drawerBg.style.pointerEvents = courseModal.classList.contains('hidden') ? '' : 'none';
+}
+async function loadDrawerCourses() {
+  try {
+    const data = await api('GET', `/students/${drawerStudentId}/courses/`);
+    const tbody = document.getElementById('courses-tbody');
+    if (!data.courses.length) {
+      tbody.innerHTML = '<tr><td colspan="6" class="empty">No courses yet</td></tr>'; return;
+    }
+    tbody.innerHTML = data.courses.map(c => `<tr>
+      <td><strong>${c.course_code}</strong></td><td>${c.course_name}</td>
+      <td>${c.semester}</td><td>${c.credit_hours} hrs</td>
+      <td>${c.grade !== null ? c.grade : '<span style="color:var(--muted)">—</span>'}</td>
+      <td class="td-actions">
+        <button class="btn btn-sm btn-amber" onclick="openCourseModal(${c.id})">Edit</button>
+        <button class="btn btn-sm btn-danger" onclick="deleteCourse(${c.id})">Del</button>
+      </td></tr>`).join('');
+  } catch (e) { toast(e.message, 'error'); }
+}
+
+async function openCourseModal(courseId) {
+  // FIX: Guard against null drawerStudentId
+  if (!drawerStudentId) return toast('Error: no student selected. Please reopen the drawer.', 'error');
+  editingCourseId = courseId;
+  document.getElementById('cm-title').textContent = courseId ? 'Edit Course' : 'Add Course';
+  document.getElementById('cm-submit').textContent = courseId ? 'Save' : 'Add Course';
+  if (courseId) {
+    try {
+      const c = await api('GET', `/students/${drawerStudentId}/courses/${courseId}`);
+      document.getElementById('cm-name').value     = c.course_name;
+      document.getElementById('cm-code').value     = c.course_code;
+      document.getElementById('cm-credits').value  = c.credit_hours;
+      document.getElementById('cm-semester').value = c.semester;
+      document.getElementById('cm-grade').value    = c.grade !== null ? c.grade : '';
+    } catch (e) { toast(e.message, 'error'); return; }
+  } else {
+    ['cm-name','cm-code','cm-semester','cm-grade'].forEach(id =>
+      document.getElementById(id).value = '');
+    document.getElementById('cm-credits').value = 3;
+  }
+  document.getElementById('course-modal').dataset.studentId = drawerStudentId;
+  document.getElementById('course-modal').classList.remove('hidden');
+  _syncDrawerBgPointer();
+}
+
+function closeCourseModal() {
+  const modal = document.getElementById('course-modal');
+  modal.classList.add('hidden');
+  modal.dataset.studentId = '';
+  editingCourseId = null;
+  _syncDrawerBgPointer();
+}
+
+async function submitCourseModal() {
+  // Read student ID from the modal element itself — immune to drawer close timing
+  const modal = document.getElementById('course-modal');
+  const studentId = parseInt(modal.dataset.studentId || drawerStudentId);
+  if (!studentId) return toast('Error: student ID missing. Close the drawer and try again.', 'error');
+  const name    = document.getElementById('cm-name').value.trim();
+  const code    = document.getElementById('cm-code').value.trim();
+  const credits = parseInt(document.getElementById('cm-credits').value);
+  const semester = document.getElementById('cm-semester').value.trim();
+  const gradeVal = document.getElementById('cm-grade').value;
+  const grade   = gradeVal !== '' ? parseFloat(gradeVal) : null;
+  try {
+    if (editingCourseId) {
+      const body = {};
+      if (name)    body.course_name  = name;
+      if (code)    body.course_code  = code;
+      if (credits) body.credit_hours = credits;
+      if (semester) body.semester    = semester;
+      if (grade !== null) body.grade = grade;
+      await api('PUT', `/students/${studentId}/courses/${editingCourseId}`, body);
+      toast('Course updated');
+    } else {
+      if (!name || !code || !semester) return toast('Fill all required fields', 'error');
+      const body = { course_name: name, course_code: code, credit_hours: credits || 3, semester };
+      if (grade !== null) body.grade = grade;
+      await api('POST', `/students/${studentId}/courses/`, body);
+      toast('Course added');
+    }
+    closeCourseModal(); await loadDrawerCourses();
+  } catch (e) { toast(e.message, 'error'); }
+}
+
+async function deleteCourse(cid) {
+  if (!confirm('Delete this course?')) return;
+  try { await api('DELETE', `/students/${drawerStudentId}/courses/${cid}`); toast('Deleted'); await loadDrawerCourses(); }
+  catch (e) { toast(e.message, 'error'); }
+}
+
+// ── Student Dashboard ─────────────────────────────────────────
+async function loadDashboard() {
+  try {
+    const p = await api('GET', '/students/me');
+    const isPending = p.full_name === '(Pending)' || p.department === '(Pending)';
+
+    // Show or hide the pending notice
+    let pendingNotice = document.getElementById('dashboard-pending-notice');
+    if (!pendingNotice) {
+      pendingNotice = document.createElement('div');
+      pendingNotice.id = 'dashboard-pending-notice';
+      pendingNotice.style.cssText = 'background:rgba(245,158,11,0.15);border:1px solid #f59e0b;border-radius:8px;padding:12px 16px;margin-bottom:16px;color:#92400e;font-size:0.9rem;';
+      const dashView = document.getElementById('view-dashboard');
+      dashView.insertBefore(pendingNotice, dashView.firstChild);
+    }
+    if (isPending) {
+      pendingNotice.innerHTML = '⏳ <strong>Your profile is pending review.</strong> An admin will complete your details (name, department, GPA) shortly. You can already update your phone number and email below.';
+      pendingNotice.style.display = 'block';
+    } else {
+      pendingNotice.style.display = 'none';
+    }
+
+    const gpaC = p.gpa >= 3.5 ? 'gpa-high' : p.gpa >= 2.5 ? 'gpa-mid' : 'gpa-low';
+    document.getElementById('profile-rows').innerHTML = [
+      ['Full Name', p.full_name], ['Email', p.email],
+      ['Department', p.department], ['Phone', p.phone || '—'],
+    ].map(([k,v]) => `<div class="info-row"><span class="key">${k}</span><span class="val">${v}</span></div>`).join('');
+
+    const data = await api('GET', `/students/${p.id}/courses/`);
+    const totalCredits = data.courses.reduce((s,c) => s + c.credit_hours, 0);
+    const graded = data.courses.filter(c => c.grade !== null);
+    const avgGrade = graded.length ? (graded.reduce((s,c)=>s+c.grade,0)/graded.length).toFixed(1) : '—';
+
+    document.getElementById('stats-rows').innerHTML = [
+      ['GPA', `<span class="gpa-badge ${gpaC}">${p.gpa.toFixed(2)}</span>`],
+      ['Total Courses', data.total],
+      ['Total Credits', totalCredits + ' hrs'],
+      ['Avg Grade', avgGrade],
+      ['Member Since', p.created_at ? new Date(p.created_at).toLocaleDateString() : '—'],
+    ].map(([k,v]) => `<div class="info-row"><span class="key">${k}</span><span class="val">${v}</span></div>`).join('');
+
+    const grid = document.getElementById('courses-grid');
+    if (!data.courses.length) {
+      grid.innerHTML = '<div class="empty">No courses registered yet. Contact your admin.</div>'; return;
+    }
+    grid.innerHTML = data.courses.map(c => {
+      const gradeTag = c.grade !== null
+        ? `<span class="tag tag-grade">Grade: ${c.grade}</span>`
+        : `<span class="tag tag-none">Not graded</span>`;
+      return `<div class="course-card">
+        <div class="code">${c.course_code}</div>
+        <div class="cname">${c.course_name}</div>
+        <div class="tags">
+          <span class="tag tag-sem">${c.semester}</span>
+          <span class="tag tag-credit">${c.credit_hours} cr hrs</span>
+          ${gradeTag}
+        </div>
+      </div>`;
+    }).join('');
+  } catch (e) { toast(e.message, 'error'); }
+}
+
+// ── Monitoring ────────────────────────────────────────────────
+async function showMonitoring() {
+  showView('view-monitoring');
+  try {
+    const data = await api('GET', '/monitoring/stats');
+    const avg = data.avg_response_time_ms ? data.avg_response_time_ms.toFixed(1) : '0';
+    const endpointsHtml = (data.top_endpoints || []).length
+      ? data.top_endpoints.map(e =>
+          `<div class="info-row">
+            <span class="key" style="font-family:monospace;font-size:12px">${e.endpoint}</span>
+            <span class="val"><strong>${e.count}</strong> req</span>
+          </div>`
+        ).join('')
+      : '<div class="empty">No request data yet</div>';
+
+    const logsHtml = (data.recent_logs || []).slice().reverse().slice(0, 15).map(l => {
+      const isErr = /-> [45]\d\d/.test(l);
+      return `<div style="font-size:12px;color:${isErr ? 'var(--red)' : 'var(--muted)'};padding:5px 0;border-bottom:1px solid var(--border)">${l}</div>`;
+    }).join('') || '<div class="empty">No logs yet</div>';
+
+    document.getElementById('monitoring-content').innerHTML = `
+      <div class="dash-grid">
+        <div class="info-card">
+          <h3>System Stats</h3>
+          ${[['Total Requests', data.total_requests],
+             ['Errors', `<span style="color:var(--red)">${data.errors}</span>`],
+             ['Error Rate', data.error_rate_percent + '%'],
+             ['Avg Response Time', avg + ' ms'],
+             ['Status', '<span style="color:var(--green)">Online ✓</span>']
+            ].map(([k,v])=>`<div class="info-row"><span class="key">${k}</span><span class="val">${v}</span></div>`).join('')}
+        </div>
+        <div class="info-card">
+          <h3>Request Types Breakdown</h3>
+          <div style="max-height:300px;overflow-y:auto">${endpointsHtml}</div>
+        </div>
+      </div>
+      <div class="info-card" style="margin-top:16px">
+        <h3>Recent Logs</h3>
+        <div style="max-height:300px;overflow-y:auto">${logsHtml}</div>
+      </div>`;
+  } catch(e) { toast(e.message, 'error'); }
+}
+</script>
+</body>
+</html>
