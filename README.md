@@ -4,14 +4,7 @@ A secure, production-ready REST API built with **FastAPI** for managing universi
 
 ---
 
-## Team Members
 
-| Name | Role |
-|------|------|
-| Haitham| Backend Lead – Auth, JWT, Database |
-| [Member 2] | Student Routes & Services |
-| [Member 3] | Caching, Logging & Monitoring |
-| [Member 4] | Testing & Documentation |
 
 ---
 
